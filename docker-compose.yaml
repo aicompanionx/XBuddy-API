@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  xbuddy-api:
+    build: .
+    restart: always
+    container_name: xbuddy-api
+    environment:
+      - CONFIG_FILE=/config/config.yaml
+    volumes:
+      - ./config.yaml:/config/config.yaml:ro
+    ports:
+      - '10108:10108'
+    command: uvicorn app.main:app --host 0.0.0.0 --port 10108 --log-level info
+    extra_hosts:

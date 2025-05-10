@@ -1,0 +1,85 @@
+app:
+  name: xbuddy-api
+  version: 0.1
+
+postgres:
+  host: "xxx"
+  port: 5432
+  user: "xxx"
+  password: "xxx"
+  db: "xxx"
+
+redis:
+  host: "localhost"
+  port: 6379
+  db: 0
+
+rabbit:
+  host: "xxx"
+  port: 5672
+  user: "xbuddy"
+  password: "xxx"
+  virtualhost: ""
+
+external_apis:
+  analysis_ai:
+    base_url: "https://api.v3.cm/v1"
+    key: "xxx"
+    model: "gpt-4o"
+
+  chat_ai:
+    base_url: "https://api.x.ai/v1"
+    key: "xxx"
+    model: "grok-3-fast-beta"
+
+  image_recognition_ai:
+    base_url: "https://api.x.ai/v1"
+    key: "xxx"
+    model: "grok-2-vision-1212"
+    prompt: "你是一个Web3领域的图像识别AI，识别图片内容 进行详细文字描述"
+
+  tts_ai:
+    base_url: "https://api.x.ai/v1"
+    key: "xxx"
+    model: "grok-3-fast-beta"
+
+  jina:
+    read_url: "https://r.jina.ai"
+    search_url: "https://s.jina.ai"
+    key: "xxx"
+
+  fish_audio:
+    base_url: "https://api.fish.audio/v1/tts"
+    key: "xxx"
+    model: "speech-1.6"
+    reference_id: "7f92f8afb8ec43bf81429cc1c9199cb1"
+
+  twitter:
+    base_url: "https://api.twitter.com/2"
+    key: "xxx"
+
+  goplus:
+    base_url: "https://api.gopluslabs.io"
+
+  dex:
+    base_url: "https://api.dexscreener.com"
+
+  twitterapi:
+    base_url: "https://api.twitterapi.io"
+    key: "xxx"
+
+  coingecko:
+    base_url: https://api.coingecko.com/api/v3
+    key: "xxx"
+    
+  getmoni:
+    base_url: "https://twitter-bot.getmoni.io/api"
+    address: "0x1Ca298e7013bE0A9Ee8b085a20afE7Aab69BE5aE"
+    signature: "xxx"
+
+  # cmc:
+  #   key: "xxx"
+  #   base_url: "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
+
+  # coinapi:
+  #   key: "xxx"

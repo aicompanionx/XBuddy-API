@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+venv/
+.env
+config.yaml
+test*
+latest_logs/  File .line_1/page_source.html
+latest_logs/  File .line_1/basic_test_info.txt
+downloaded_files/driver_fixing.lock
+downloaded_files/pyautogui.lock
+logs/
+/.idea/

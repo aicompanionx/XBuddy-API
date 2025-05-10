@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XBuddy API Log Viewer</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #2d2d2d;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .title {
+            margin: 0;
+            color: #61dafb;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .filter-select {
+            padding: 5px 10px;
+            border-radius: 4px;
+            background-color: #3a3a3a;
+            color: #fff;
+            border: 1px solid #555;
+        }
+        .button {
+            padding: 5px 10px;
+            border-radius: 4px;
+            background-color: #444;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background-color: #555;
+        }
+        .clear-button {
+            background-color: #d14343;
+        }
+        .clear-button:hover {
+            background-color: #e25555;
+        }
+        .log-container {
+            background-color: #252526;
+            border-radius: 4px;
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #333;
+        }
+        .log-entry {
+            margin-bottom: 6px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-break: break-word;
+            border-left: 3px solid #555;
+            padding-left: 8px;
+        }
+        .log-entry.debug {
+            border-left-color: #6796e6;
+        }
+        .log-entry.info {
+            border-left-color: #4ec9b0;
+        }
+        .log-entry.warning {
+            border-left-color: #e6c07b;
+        }
+        .log-entry.error {
+            border-left-color: #f44747;
+        }
+        .log-entry.critical {
+            border-left-color: #f44747;
+            background-color: rgba(244, 71, 71, 0.1);
+        }
+        .timestamp {
+            color: #569cd6;
+        }
+        .module {
+            color: #c586c0;
+        }
+        .level-debug {
+            color: #6796e6;
+        }
+        .level-info {
+            color: #4ec9b0;
+        }
+        .level-warning {
+            color: #e6c07b;
+        }
+        .level-error, .level-critical {
+            color: #f44747;
+        }
+        .status {
+            margin-top: 10px;
+            color: #888;
+            font-size: 0.9em;
+        }
+        .status .connected {
+            color: #4ec9b0;
+        }
+        .status .disconnected {
+            color: #f44747;
+        }
+        .exception {
+            margin-top: 5px;
+            padding: 5px;
+            background-color: rgba(244, 71, 71, 0.1);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">XBuddy API Log Viewer</h1>
+            <div class="controls">
+                <select id="levelFilter" class="filter-select">
+                    <option value="all">All Logs</option>
+                    <option value="debug">Debug and above</option>
+                    <option value="info">Info and above</option>
+                    <option value="warning">Warning and above</option>
+                    <option value="error">Error and above</option>
+                </select>
+                <input type="text" id="searchFilter" placeholder="Search logs..." class="filter-select">
+                <button id="connectButton" class="button">Connect</button>
+                <button id="clearButton" class="button clear-button">Clear</button>
+            </div>
+        </div>
+        <div id="logContainer" class="log-container"></div>
+        <div id="status" class="status">Status: <span class="disconnected">Disconnected</span></div>
+    </div>
+    <script>
+        const levelWeight = {
+            'DEBUG': 0,
+            'INFO': 1,
+            'WARNING': 2,
+            'ERROR': 3,
+            'CRITICAL': 4
+        };
+
+        let socket;
+        let isConnected = false;
+        let logsBuffer = [];
+        const maxLogs = 1000;
+
+        const logContainer = document.getElementById('logContainer');
+        const levelFilter = document.getElementById('levelFilter');
+        const searchFilter = document.getElementById('searchFilter');
+        const connectButton = document.getElementById('connectButton');
+        const clearButton = document.getElementById('clearButton');
+        const statusElement = document.getElementById('status').querySelector('span');
+
+        function connect() {
+            const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            const wsUrl = `${protocol}${window.location.host}/api/v1/logs/ws`;
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = function() {
+                isConnected = true;
+                statusElement.textContent = 'Connected';
+                statusElement.className = 'connected';
+                connectButton.textContent = 'Disconnect';
+                startHeartbeat();
+            };
+
+            socket.onclose = function(event) {
+                isConnected = false;
+                statusElement.textContent = 'Disconnected';
+                statusElement.className = 'disconnected';
+                connectButton.textContent = 'Connect';
+                if (event.code !== 1000) {
+                    let reason = event.reason || "Unknown reason";
+                    addLogEntry({
+                        level: 'WARNING',
+                        timestamp: new Date().toISOString(),
+                        module: 'log-viewer',
+                        message: `WebSocket closed: code=${event.code}, reason=${reason}`,
+                        emoji: '⚠️'
+                    });
+                }
+            };
+
+            socket.onerror = function(event) {
+                let errorMsg = "Error connecting to server. Check your network or server status.";
+                addLogEntry({
+                    level: 'ERROR',
+                    timestamp: new Date().toISOString(),
+                    module: 'log-viewer',
+                    message: errorMsg,
+                    emoji: '❌'
+                });
+            };
+
+            socket.onmessage = function(event) {
+                try {
+                    if (event.data === "pong") {
+                        return;
+                    }
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'log') {
+                        addLogEntry(data);
+                    } else if (data.action === 'history' && Array.isArray(data.logs)) {
+                        logsBuffer = [];
+                        data.logs.forEach(log => logsBuffer.push(log));
+                        applyFilters();
+                    } else if (data.action === 'new_log' && data.log) {
+                        addLogEntry(data.log);
+                    } else if (data.action === 'pong') {
+                    }
+                } catch (e) {
+                    addLogEntry({
+                        level: 'ERROR',
+                        timestamp: new Date().toISOString(),
+                        module: 'log-viewer',
+                        message: `Failed to parse message: ${e.message}`,
+                        emoji: '❌'
+                    });
+                }
+            };
+        }
+
+        function startHeartbeat() {
+            const heartbeatInterval = setInterval(() => {
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send('ping');
+                } else {
+                    clearInterval(heartbeatInterval);
+                }
+            }, 30000);
+        }
+
+        function addLogEntry(logData) {
+            logsBuffer.push(logData);
+            if (logsBuffer.length > maxLogs) {
+                logsBuffer.shift();
+            }
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const selectedLevel = levelFilter.value;
+            const searchText = searchFilter.value.toLowerCase();
+            logContainer.innerHTML = '';
+            logsBuffer.forEach(log => {
+                if (selectedLevel !== 'all') {
+                    const logLevelWeight = levelWeight[log.level] || 0;
+                    const filterLevelWeight = levelWeight[selectedLevel.toUpperCase()] || 0;
+                    if (logLevelWeight < filterLevelWeight) {
+                        return;
+                    }
+                }
+                if (searchText && !(
+                    log.message.toLowerCase().includes(searchText) ||
+                    log.module.toLowerCase().includes(searchText) ||
+                    (log.formatted && log.formatted.toLowerCase().includes(searchText))
+                )) {
+                    return;
+                }
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${log.level.toLowerCase()}`;
+                let content = '';
+                content += `<span class="timestamp">${log.timestamp}</span> `;
+                content += `<span class="emoji">${log.emoji}</span> `;
+                content += `<span class="level-${log.level.toLowerCase()}">${log.level.padEnd(8)}</span> `;
+                content += `<span class="module">[${log.module}]</span> - `;
+                content += log.message;
+                if (log.exception) {
+                    content += `<div class="exception">${log.exception}</div>`;
+                }
+                logEntry.innerHTML = content;
+                logContainer.appendChild(logEntry);
+            });
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        connectButton.addEventListener('click', function() {
+            if (isConnected) {
+                socket.close();
+            } else {
+                connect();
+            }
+        });
+
+        clearButton.addEventListener('click', function() {
+            logsBuffer = [];
+            logContainer.innerHTML = '';
+        });
+
+        levelFilter.addEventListener('change', applyFilters);
+        searchFilter.addEventListener('input', applyFilters);
+
+        connect();
+    </script>
+</body>
+</html>
