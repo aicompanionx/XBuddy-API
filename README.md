@@ -165,4 +165,5 @@ Once the service is running, visit: <http://localhost:8080/> to view the Swagger
 | v1.0.0  | 2024-04-24  | Deprecated   | [Archived Repository](https://github.com/xbuddy-ai/xbuddy-api) |
 
 ## 📄 License
-GPL-3.0
+
+CC BY-NC
