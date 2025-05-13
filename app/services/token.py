@@ -3,15 +3,12 @@ import logging
 from sqlalchemy import text
 
 from app.dependencies import get_db
-from app.services.external.goplus_api import (
-    process_token_risk,
-    process_solana_token_risk,
-)
+from app.services.external.goplus_api import process_token_risk, process_solana_token_risk, api_check_token_safety, \
+    api_check_solana_token_safety
 from app.services.twitter import extract_twitter_username
 from app.schemas.token import CheckTokenData, TwitterFromCAData, CheckSOLTokenData, CAFromTwitterData
 from app.utils.chain_name_format import API_SUPPORTED_CHAINS, normalize_chain_name
 from app.utils.custom_exceptions import BadRequestException
-from app.services.external.goplus_api import api_check_token_safety, api_check_solana_token_safety
 logger = logging.getLogger(__name__)
 
 

@@ -20,7 +20,7 @@ from app.schemas.token import (
 
     TwitterFromCARequest,
     TwitterFromCAData,
-    TwitterFromCAResponse, TokenPairsResponse, TokenPairsRequest, TokenDetailData, TokenChainData
+    TwitterFromCAResponse, TokenPairsResponse, TokenPairsRequest, TokenChainData
 )
 from app.services.token import (
     check_token_safety_api,
