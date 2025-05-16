@@ -1,5 +1,6 @@
 import logging
 import re
+import uuid
 
 import httpx
 
@@ -9,13 +10,6 @@ from app.services.twitter import extract_twitter_username, score_to_level
 from app.utils.cache import get_cached_data, cache_data
 
 logger = logging.getLogger(__name__)
-
-headers = {
-    "accept": "*/*",
-    "accept-language": "en-US,en;q=0.9",
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
-}
-
 
 async def get_auth():
     cache_key = "getmoni:api:auth"
@@ -29,16 +23,34 @@ async def get_auth():
     base_url = cfg["base_url"]
 
     async with httpx.AsyncClient() as client:
-        client.headers.update(headers)
-
+        client.headers.update({
+            "sec-ch-ua-platform": "\"Windows\"",
+            "authorization": "",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+            "accept": "application/json, text/plain, */*",
+            "sec-ch-ua": "\"Chromium\";v=\"136\", \"Google Chrome\";v=\"136\", \"Not.A/Brand\";v=\"99\"",
+            "content-type": "application/json",
+            "sec-ch-ua-mobile": "?0",
+            "origin": "https://discover.getmoni.io",
+            "sec-fetch-site": "same-site",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "accept-language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
+            "priority": "u=1, i",
+            "dnt": "1",
+            "sec-gpc": "1",
+        })
+        logger.debug("Requesting Getmoni Auth...")
         response = await client.post(f"{base_url}/auth/sign_in/", json={
             "address": address,
             "isError": False,
             "signature": signature
         })
+        
+        response.raise_for_status()
 
         auth = response.json()["accessToken"]
-        print(f"Create key successfully (valid for 6h): {auth}")
+        logger.debug(f"Create key successfully (valid for 6h): {auth}")
 
         await cache_data(cache_key, auth)
         return auth
@@ -55,11 +67,33 @@ async def get_user_info(username: str):
         return cached_data
 
     cfg = get_config()["external_apis"]["getmoni"]
+    logger.debug("Get Getmoni Auth...")
     auth = await get_auth()
     base_url = cfg["base_url"]
+    random_uuid = str(uuid.uuid4())
+    
+    headers = {
+        "host": "twitter-bot.getmoni.io",
+        "x-error-status": random_uuid,
+        "sec-ch-ua-platform": "\"Windows\"",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+        "accept": "application/json, text/plain, */*",
+        "sec-ch-ua": "\"Chromium\";v=\"136\", \"Google Chrome\";v=\"136\", \"Not.A/Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-fetch-site": "none",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-storage-access": "active",
+        "accept-language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
+        "cookie": f"X-Error-Status={random_uuid}",
+        "priority": "u=1, i",
+        "dnt": "1",
+        "sec-gpc": "1",
+        "authorization": f"Bearer {auth}"
+    }
 
     async with httpx.AsyncClient() as client:
-        client.headers.update(dict(**headers, **{"authorization": f"Bearer {auth}"}))
+        client.headers.update(headers)
         response = await client.get(
             url=f"{base_url}/observed/{username}/?changesTimeframe=H24",
             timeout=10
@@ -85,12 +119,14 @@ async def get_user_info(username: str):
         # =============================================================== Get 24H mentions
         # Get 24H mentions data
         logger.info(f"Get 24H mentions data: {username}")
-        client.headers.update(dict(**headers, **{"authorization": f"Bearer {auth}"}))
+        
         response = await client.get(
             url=f"{base_url}/observed/{username}/charts/mentions_count_history/?timeframe=H24",
             timeout=10
         )
 
+        logger.info(f"H24 mentions response: {response.json()}")
+        
         response.raise_for_status()
         chart_data = response.json().get("chart", [])
         mentions = 0
