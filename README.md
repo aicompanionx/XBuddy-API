@@ -1,4 +1,3 @@
-
 <p align="center">
     <img src="./docs/logo.png" alt="XBuddy Logo" />
 </p>
@@ -140,7 +139,7 @@ Once the service is running, visit: <http://localhost:8080/> to view the Swagger
 - ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-3776AB?style=flat-square)
 
 ## 🔄 Migration from v1.0
-> **⚠️ Important Notice:** The legacy v1.0 API was officially deprecated and archived on April 24, 2024. All services using the old endpoints should migrate to this version as soon as possible.
+> **⚠️ Important Notice:** The legacy v1.0 API was officially deprecated and archived on **2025-04-24**. All services using the old endpoints should migrate to this version as soon as possible.
 
 **Key differences from the old API:**
 
@@ -162,7 +161,7 @@ Once the service is running, visit: <http://localhost:8080/> to view the Swagger
 | Version | Release Date | Status       | Notes |
 |---------|-------------|--------------|-------|
 | v2.0.0  | 2025-05-10  | Current      | v2 officially released |
-| v1.0.0  | 2024-04-24  | Deprecated   | [Archived Repository](https://github.com/xbuddy-ai/xbuddy-api) |
+| v1.0.0  | 2025-04-24  | Deprecated   | [Archived Repository](https://github.com/xbuddy-ai/xbuddy-api) |
 
 ## 📄 License <a name="license"></a>
 
