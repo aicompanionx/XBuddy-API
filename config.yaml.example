@@ -74,7 +74,7 @@ external_apis:
     
   getmoni:
     base_url: "https://twitter-bot.getmoni.io/api"
-    address: "0x1Ca298e7013bE0A9Ee8b085a20afE7Aab69BE5aE"
+    address: "xxx"
     signature: "xxx"
 
   # cmc:

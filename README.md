@@ -119,6 +119,66 @@ docker-compose up -d --build
 
 Once the service is running, visit: <http://localhost:8080/> to view the Swagger documentation.
 
+## 🔄 UV Tutorial
+
+UV is a Python package installer and resolver that can be used as an alternative to pip. Here's how to use it with XBuddy:
+
+### Installation
+
+```bash
+# Install UV globally
+pip install uv
+```
+
+### Using UV with XBuddy
+
+#### 1. Create a virtual environment
+
+```bash
+# Create a new virtual environment in the .venv directory
+uv venv
+```
+
+#### 2. Activate the virtual environment
+
+**Linux/macOS:**
+```bash
+source .venv/bin/activate
+```
+
+**Windows:**
+```bat
+.venv\Scripts\activate
+```
+
+#### 3. Install dependencies using UV
+
+```bash
+# Install all dependencies from requirements.txt
+uv pip install -r requirements.txt
+```
+
+#### 4. Benefits of using UV
+
+- **Speed**: UV is significantly faster than pip for installing packages
+- **Reliability**: Better dependency resolution to avoid conflicts
+- **Caching**: Efficient caching of packages for faster reinstalls
+- **Compatibility**: Works with existing requirements.txt files
+
+### Running XBuddy with UV-installed dependencies
+
+After installing dependencies with UV, you can run XBuddy normally using the development scripts:
+
+```bash
+# Set configuration and run development server
+export CONFIG_FILE=$(pwd)/config.yaml  # Linux/macOS
+set CONFIG_FILE=%cd%\config.yaml     # Windows
+
+# Run the development server
+./run_dev.sh  # Linux/macOS
+run_dev.bat   # Windows
+```
+
 ## ⚙️ Important Environment Variables
 | Variable Name | Description | Default |
 |---------------|-------------|----------|
