@@ -3,12 +3,22 @@ import logging
 from sqlalchemy import text
 
 from app.dependencies import get_db
-from app.services.external.goplus_api import process_token_risk, process_solana_token_risk, api_check_token_safety, \
-    api_check_solana_token_safety
+from app.schemas.token import (
+    CAFromTwitterData,
+    CheckSOLTokenData,
+    CheckTokenData,
+    TwitterFromCAData,
+)
+from app.services.external.goplus_api import (
+    api_check_solana_token_safety,
+    api_check_token_safety,
+    process_solana_token_risk,
+    process_token_risk,
+)
 from app.services.twitter import extract_twitter_username
-from app.schemas.token import CheckTokenData, TwitterFromCAData, CheckSOLTokenData, CAFromTwitterData
 from app.utils.chain_name_format import API_SUPPORTED_CHAINS, normalize_chain_name
 from app.utils.custom_exceptions import BadRequestException
+
 logger = logging.getLogger(__name__)
 
 
@@ -59,10 +69,10 @@ async def get_ca_from_twitter(twitter_name: str) -> CAFromTwitterData:
     """
     Get CA from Twitter
     """
-    
+
     if "https://" in twitter_name:
         twitter_name = extract_twitter_username(twitter_name)
-    
+
     async with get_db() as db:
         x_url = "https://x.com/" + twitter_name
         twitter_url = "https://twitter.com/" + twitter_name
@@ -115,7 +125,9 @@ async def get_twitter_from_ca(ca: str) -> TwitterFromCAData:
         # Get result
         row = result.fetchone()
         if not row:
-            raise BadRequestException(f"Did not find any Twitter accounts with address '{ca}'")
+            raise BadRequestException(
+                f"Did not find any Twitter accounts with address '{ca}'"
+            )
 
         # Return Twitter account
         return TwitterFromCAData(twitter_name=row[0][0])
@@ -136,14 +148,18 @@ async def identify_token_chain(ca: str) -> str:
     if ca.startswith("0x"):
         # Check if CA length is correct (standard contract address length is 42 characters, including 0x prefix)
         if len(ca) != 42:
-            raise BadRequestException("Ethereum contract address length must be 42 characters (including 0x prefix)")
-        
+            raise BadRequestException(
+                "Ethereum contract address length must be 42 characters (including 0x prefix)"
+            )
+
         # Check if CA only contains valid hexadecimal characters
         try:
             int(ca[2:], 16)
         except ValueError:
-            raise BadRequestException("Contract address must be in valid hexadecimal format")
-            
+            raise BadRequestException(
+                "Contract address must be in valid hexadecimal format"
+            )
+
         # Check Ethereum series chains (in order of commonality)
         eth_chains = ["ethereum", "bsc", "base"]
         for chain in eth_chains:
@@ -164,12 +180,14 @@ async def identify_token_chain(ca: str) -> str:
         # Solana addresses are usually base58 encoded and 44 characters long
         if len(ca) < 32 or len(ca) > 44:
             raise BadRequestException("Solana contract address length is incorrect")
-        
+
         # Check if CA only contains valid base58 characters (excluding 0OIl characters)
         valid_chars = set("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
         if not all(c in valid_chars for c in ca):
-            raise BadRequestException("Solana contract address contains invalid characters")
-            
+            raise BadRequestException(
+                "Solana contract address contains invalid characters"
+            )
+
         # Check Solana chain
         try:
             chain = "solana"
@@ -181,4 +199,6 @@ async def identify_token_chain(ca: str) -> str:
             logger.debug(f"Solana chain detection failed: {str(e)}")
 
     # If all chains fail to detect
-    raise BadRequestException("Failed to detect the blockchain network that the contract address belongs to")
+    raise BadRequestException(
+        "Failed to detect the blockchain network that the contract address belongs to"
+    )

@@ -1,6 +1,7 @@
+import json
+
 from fastapi import APIRouter, WebSocket
 from fastapi.websockets import WebSocketDisconnect
-import json
 
 from app.services.agent.general_chat import GeneralChatAgent
 from app.utils.logger import get_logger
@@ -9,6 +10,7 @@ logger = get_logger(__name__)
 
 # General chat route
 router = APIRouter(prefix="/chat", tags=["General Chat Service"])
+
 
 @router.websocket(
     "/ws",
@@ -53,7 +55,9 @@ async def general_chat_websocket(websocket: WebSocket):
 
                 elif msg_type == "chat":
                     # Chat message
-                    if not msg_data or not all(k in msg_data for k in ["content", "lang"]):
+                    if not msg_data or not all(
+                        k in msg_data for k in ["content", "lang"]
+                    ):
                         await websocket.send_json(
                             {
                                 "data": {"message": "Invalid parameters", "code": 1},
@@ -64,8 +68,9 @@ async def general_chat_websocket(websocket: WebSocket):
 
                     # Get parameters
                     lang = msg_data.get("lang")
-                    content = msg_data.get("content") + \
-                        f"\n\n[setting: language: {lang}]"
+                    content = (
+                        msg_data.get("content") + f"\n\n[setting: language: {lang}]"
+                    )
 
                     # Run chat dialogue
                     try:
@@ -76,13 +81,15 @@ async def general_chat_websocket(websocket: WebSocket):
                         for chunk in response:
                             if chunk.content is not None:
                                 ai_response_content += chunk.content
-                                await websocket.send_json({
-                                    "data": {
-                                        "message": chunk.content,
-                                        "code": 0,
-                                    },
-                                    "type": "chat"
-                                })
+                                await websocket.send_json(
+                                    {
+                                        "data": {
+                                            "message": chunk.content,
+                                            "code": 0,
+                                        },
+                                        "type": "chat",
+                                    }
+                                )
 
                         if ai_response_content:
                             await websocket.send_json(
@@ -93,18 +100,50 @@ async def general_chat_websocket(websocket: WebSocket):
                             )
 
                     except Exception as e:
-                        await websocket.send_json({"data": {"message": f"Error occurred during chat: {str(e)}", "code": 1}, "type": "error"})
+                        await websocket.send_json(
+                            {
+                                "data": {
+                                    "message": f"Error occurred during chat: {str(e)}",
+                                    "code": 1,
+                                },
+                                "type": "error",
+                            }
+                        )
                         logger.error(f"Error occurred during chat: {str(e)}")
 
                 else:
                     # Unsupported message type
-                    await websocket.send_json({"data": {"message": f"Unsupported message type: {msg_type}", "code": 1}, "type": "error"})
+                    await websocket.send_json(
+                        {
+                            "data": {
+                                "message": f"Unsupported message type: {msg_type}",
+                                "code": 1,
+                            },
+                            "type": "error",
+                        }
+                    )
 
             except json.JSONDecodeError:
-                await websocket.send_json({"data": {"message": "Invalid JSON format, please send valid JSON", "code": 1}, "type": "error"})
+                await websocket.send_json(
+                    {
+                        "data": {
+                            "message": "Invalid JSON format, please send valid JSON",
+                            "code": 1,
+                        },
+                        "type": "error",
+                    }
+                )
                 logger.error("JSON decoding error")
             except Exception as e:
-                await websocket.send_json({"data": {"message": f"Error occurred during message processing: {str(e)}", "code": 1}, "type": "error"})
+                await websocket.send_json(
+                    {
+                        "data": {
+                            "message": f"Error occurred during message processing: {str(e)}",
+                            "code": 1,
+                        },
+                        "type": "error",
+                    }
+                )
                 logger.error(f"Error occurred during message processing: {str(e)}")
 
     except WebSocketDisconnect:
@@ -112,6 +151,11 @@ async def general_chat_websocket(websocket: WebSocket):
     except Exception as e:
         logger.error(f"WebSocket processing error: {str(e)}")
         try:
-            await websocket.send_json({"data": {"message": f"Server error: {str(e)}", "code": 1}, "type": "error"})
-        except:
+            await websocket.send_json(
+                {
+                    "data": {"message": f"Server error: {str(e)}", "code": 1},
+                    "type": "error",
+                }
+            )
+        except Exception:
             pass

@@ -4,11 +4,12 @@ import httpx
 
 from app.config import get_config
 from app.schemas.token import TokenDetailData
-from app.utils.cache import get_cached_data, cache_data
+from app.utils.cache import cache_data, get_cached_data
 from app.utils.custom_exceptions import ExternalApiException
 from app.utils.retry import retry_async
 
 logger = logging.getLogger(__name__)
+
 
 @retry_async(max_retries=3, base_delay=1, max_delay=5)
 async def _request_coingeko_api(url: str):
@@ -32,7 +33,7 @@ async def _request_coingeko_api(url: str):
             client.headers = {
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "x-cg-demo-api-key": key,
-                "accept": 'application/json'
+                "accept": "application/json",
             }
 
             full_url = base_url + url
@@ -50,6 +51,7 @@ async def _request_coingeko_api(url: str):
     except Exception as e:
         raise ExternalApiException(f"Failed to request Coingecko API: {e}")
 
+
 async def get_token_desc(chain: str, ca: str) -> TokenDetailData:
     """
     Gets token information
@@ -61,7 +63,9 @@ async def get_token_desc(chain: str, ca: str) -> TokenDetailData:
             chain = "solana"
 
         if chain not in ["solana", "binance-smart-chain", "base", "ethereum"]:
-            raise ExternalApiException(f'Unsupported chain `{chain}`, only supports ["solana", "binance-smart-chain", "base", "ethereum"]')
+            raise ExternalApiException(
+                f'Unsupported chain `{chain}`, only supports ["solana", "binance-smart-chain", "base", "ethereum"]'
+            )
 
         response: dict = await _request_coingeko_api(f"/coins/{chain}/contract/{ca}")
 
@@ -91,9 +95,9 @@ async def get_token_desc(chain: str, ca: str) -> TokenDetailData:
             description=description,
             public_notice=response.get("public_notice", ""),
             twitter_url=twitter_url,
-            logo_url=logo_url
+            logo_url=logo_url,
         )
-        
+
         return token_detail
     except Exception as e:
         logger.error(f"Failed to get token information: {str(e)}")

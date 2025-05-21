@@ -1,7 +1,8 @@
+import json
+
 from agno.run.response import RunResponse
 from fastapi import APIRouter, WebSocket
 from fastapi.websockets import WebSocketDisconnect
-import json
 
 from app.services.agent.token_analysis import TokenAnalysisAgent
 from app.utils.logger import get_logger
@@ -57,10 +58,12 @@ async def token_analysis_websocket(websocket: WebSocket):
                 # Handle different types of messages
                 if msg_type == "ping":
                     # Heartbeat detection
-                    await safe_send({
-                        "data": {"message": "pong", "code": 0},
-                        "type": "ping",
-                    })
+                    await safe_send(
+                        {
+                            "data": {"message": "pong", "code": 0},
+                            "type": "ping",
+                        }
+                    )
 
                 elif msg_type == "close":
                     # Close connection
@@ -71,22 +74,29 @@ async def token_analysis_websocket(websocket: WebSocket):
 
                 elif msg_type == "chat":
                     # Chat message
-                    if not msg_data or not all(k in msg_data for k in ["content", "lang"]):
-                        await safe_send({
-                            "data": {"message": "Invalid parameters", "code": 1},
-                            "type": "error",
-                        })
+                    if not msg_data or not all(
+                        k in msg_data for k in ["content", "lang"]
+                    ):
+                        await safe_send(
+                            {
+                                "data": {"message": "Invalid parameters", "code": 1},
+                                "type": "error",
+                            }
+                        )
                         continue
 
                     # Get parameters
                     lang = msg_data.get("lang")
-                    content = msg_data.get("content") + \
-                        f"\n\n[setting: language: {lang}]"
+                    content = (
+                        msg_data.get("content") + f"\n\n[setting: language: {lang}]"
+                    )
 
                     # Run chat dialogue
                     try:
-                        response: list[RunResponse] = agent.agent.run(content, stream=True)
-                        
+                        response: list[RunResponse] = agent.agent.run(
+                            content, stream=True
+                        )
+
                         all_response = ""
                         for chunk in response:
                             if not connection_active:
@@ -94,34 +104,61 @@ async def token_analysis_websocket(websocket: WebSocket):
                                 break
                             if chunk.content:
                                 all_response += chunk.content
-                                success = await safe_send({
-                                    "data": {
-                                        "message": chunk.content,
-                                        "code": 0,
-                                    },
-                                    "type": "chat"
-                                })
+                                success = await safe_send(
+                                    {
+                                        "data": {
+                                            "message": chunk.content,
+                                            "code": 0,
+                                        },
+                                        "type": "chat",
+                                    }
+                                )
                                 if not success:
-                                    logger.info("Message sending failed, possible connection closed")
+                                    logger.info(
+                                        "Message sending failed, possible connection closed"
+                                    )
                                     break
                         if all_response:
-                            await safe_send({
-                                "data": {"message": "EOF", "code": 2},
-                                "type": "EOF",
-                            })
+                            await safe_send(
+                                {
+                                    "data": {"message": "EOF", "code": 2},
+                                    "type": "EOF",
+                                }
+                            )
 
                     except Exception as e:
                         if connection_active:
                             logger.error(f"Chat process error: {str(e)}", exc_info=True)
-                            await safe_send({"data": {"message": f"Chat process error: {str(e)}", "code": 1}, "type": "error"})
+                            await safe_send(
+                                {
+                                    "data": {
+                                        "message": f"Chat process error: {str(e)}",
+                                        "code": 1,
+                                    },
+                                    "type": "error",
+                                }
+                            )
 
                 else:
                     # Unhandled message type
-                    await safe_send({"data": {"message": f"Unhandled message type: {msg_type}", "code": 1}, "type": "error"})
+                    await safe_send(
+                        {
+                            "data": {
+                                "message": f"Unhandled message type: {msg_type}",
+                                "code": 1,
+                            },
+                            "type": "error",
+                        }
+                    )
 
             except json.JSONDecodeError:
                 if connection_active:
-                    await safe_send({"data": {"message": "Invalid JSON format", "code": 1}, "type": "error"})
+                    await safe_send(
+                        {
+                            "data": {"message": "Invalid JSON format", "code": 1},
+                            "type": "error",
+                        }
+                    )
                     logger.error("Invalid JSON format")
             except WebSocketDisconnect:
                 connection_active = False
@@ -130,7 +167,15 @@ async def token_analysis_websocket(websocket: WebSocket):
             except Exception as e:
                 if connection_active:
                     logger.error(f"Handle message error: {str(e)}", exc_info=True)
-                    await safe_send({"data": {"message": f"Handle message error: {str(e)}", "code": 1}, "type": "error"})
+                    await safe_send(
+                        {
+                            "data": {
+                                "message": f"Handle message error: {str(e)}",
+                                "code": 1,
+                            },
+                            "type": "error",
+                        }
+                    )
 
     except WebSocketDisconnect:
         logger.info("WebSocket connection closed")

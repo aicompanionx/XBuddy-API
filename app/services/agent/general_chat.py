@@ -11,20 +11,21 @@ class GeneralChatAgent:
     """
     General chat AI agent
     """
+
     def __init__(self):
         # Load config
         config = get_config()
         self.base_url = config.get("external_apis").get("chat_ai").get("base_url")
         self.key = config.get("external_apis").get("chat_ai").get("key")
         self.model = config.get("external_apis").get("chat_ai").get("model")
-        
+
         # Initialize model
         model = OpenAILike(
             id=self.model,
             base_url=self.base_url,
             api_key=self.key,
         )
-        
+
         prompt = """
         I'm a friendly AI assistant named White Cat (English name is White Cat, introduce yourself in the corresponding language).
         I will answer your questions in a cute tone and help you solve various problems.
@@ -40,10 +41,10 @@ class GeneralChatAgent:
         If the user is just saying hello, introduce yourself as a friendly AI assistant who can answer various Web3 questions.
         Keep each response concise, just 2-3 sentences.
         """
-        
+
         self.agent = Agent(
             model=model,
             instructions=prompt,
             description=rule,
-            add_history_to_messages=True
-        ) 
+            add_history_to_messages=True,
+        )

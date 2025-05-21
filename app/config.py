@@ -1,10 +1,13 @@
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict
-import os
+
 import yaml
 
-CONFIG_PATH = os.getenv("CONFIG_FILE", str(Path(__file__).parent.parent / "config.yaml"))
+CONFIG_PATH = os.getenv(
+    "CONFIG_FILE", str(Path(__file__).parent.parent / "config.yaml")
+)
 
 
 @lru_cache()

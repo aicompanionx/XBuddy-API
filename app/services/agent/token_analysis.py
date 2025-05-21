@@ -1,39 +1,39 @@
-from agno.agent.agent import Agent
-from agno.models.openai.like import OpenAILike
-import logging
 import asyncio
+import logging
 import threading
 
-from app.services.external.goplus_api import process_token_risk
-from app.utils.chain_name_format import normalize_chain_name, API_SUPPORTED_CHAINS
-from app.utils.error_handler import RequestValidationError
-from app.utils.custom_exceptions import ExternalApiException
+from agno.agent.agent import Agent
+from agno.models.openai.like import OpenAILike
 
 from app.config import get_config
 from app.services.external.coingecko_api import get_token_desc
+from app.services.external.goplus_api import process_token_risk
+from app.utils.chain_name_format import API_SUPPORTED_CHAINS, normalize_chain_name
+from app.utils.custom_exceptions import ExternalApiException
+from app.utils.error_handler import RequestValidationError
 
 logger = logging.getLogger(__name__)
-
 
 
 class TokenAnalysisAgent:
     """
     Analyze Token information AI agent
     """
+
     def __init__(self):
         # Load config file
         config = get_config()
         self.base_url = config.get("external_apis").get("analysis_ai").get("base_url")
         self.key = config.get("external_apis").get("analysis_ai").get("key")
         self.model = config.get("external_apis").get("analysis_ai").get("model")
-        
+
         # Initialize model
         model = OpenAILike(
             id=self.model,
             base_url=self.base_url,
             api_key=self.key,
         )
-        
+
         prompt = """
         I'm a Web3 domain desktop catgirl, my name is White Cat (introduce yourself in English and other languages when asked). I can help users analyze Web3-related issues and provide cute responses.
         Guide users to use my tools (discreetly describe and guide)
@@ -49,13 +49,13 @@ class TokenAnalysisAgent:
         If the user is just saying hello, introduce yourself as a friendly AI assistant who can answer various Web3 questions.
         Keep each response concise, just 2-3 sentences.
         """
-        
+
         # Create a synchronous wrapper function
         def run_async_in_thread(coro):
             """Run an async coroutine in a new thread and return the result"""
             result_container = []
             error_container = []
-            
+
             def thread_target():
                 try:
                     # Create a new event loop
@@ -68,12 +68,12 @@ class TokenAnalysisAgent:
                 except Exception as e:
                     error_container.append(str(e))
                     logger.error(f"Async operation failed: {str(e)}")
-            
+
             # Start a new thread
             thread = threading.Thread(target=thread_target)
             thread.start()
             thread.join()  # Wait for the thread to complete
-            
+
             # Return the result or error
             if error_container:
                 return f"Execution failed: {error_container[0]}"
@@ -81,15 +81,15 @@ class TokenAnalysisAgent:
                 return result_container[0]
             else:
                 return "Unknown error, no result returned"
-        
+
         def get_ca_info_sync(chain: str, ca: str) -> str:
             """Synchronous wrapper for the get_ca_info function"""
             return run_async_in_thread(self.get_ca_info(chain, ca))
-            
+
         def check_ca_safety_sync(chain: str, ca: str) -> str:
             """Synchronous wrapper for the check_ca_safety function"""
             return run_async_in_thread(self.check_ca_safety(chain, ca))
-        
+
         self.agent = Agent(
             model=model,
             instructions=prompt,
@@ -112,7 +112,9 @@ class TokenAnalysisAgent:
                 token_info = await get_token_desc(chain, ca)
                 logger.debug(token_info.model_dump())
 
-                logger.info(f"Successfully retrieved Token information: {token_info.name} ({token_info.symbol})")
+                logger.info(
+                    f"Successfully retrieved Token information: {token_info.name} ({token_info.symbol})"
+                )
             except ExternalApiException as e:
                 logger.error(f"Failed to retrieve Token information: {str(e)}")
                 return f"Failed to retrieve Token information: {str(e)}"
@@ -123,11 +125,11 @@ class TokenAnalysisAgent:
             Token description: {token_info.description}
 
             Token announcement: {token_info.public_notice}
-            
+
             From: {token_info.platform}
             Categories: {",".join(token_info.categories)}
             Twitter URL: {token_info.twitter_url}
-            
+
             Mainly introduce the token description
             """
 
@@ -150,7 +152,6 @@ class TokenAnalysisAgent:
 
         response = await process_token_risk(chain_id, ca)
 
-
         if response is not None and response.model_dump():
             content = f"""Check result:
             Token name: {response.token_name}
@@ -158,35 +159,35 @@ class TokenAnalysisAgent:
             Total supply: {response.total_supply}
             Holder count: {response.holder_count}
             Top 10 holder ratio: {response.top_holders_percent}
-            
+
             Safety analysis:
-            Is open source: {'Yes' if response.is_open_source else 'No'}
-            Is proxy contract: {'Yes' if response.is_proxy else 'No'}
-            Can mint: {'Yes' if response.is_mintable else 'No'}
-            Can take back ownership: {'Yes' if response.can_take_back_ownership else 'No'}
-            Owner can change balance: {'Yes' if response.owner_change_balance else 'No'}
-            Is hidden owner: {'Yes' if response.hidden_owner else 'No'}
-            Can self-destruct: {'Yes' if response.selfdestruct else 'No'}
-            External contract call risk: {'Yes' if response.external_call else 'No'}
-            Gas abuse: {'Yes' if response.gas_abuse else 'No'}
-            
+            Is open source: {"Yes" if response.is_open_source else "No"}
+            Is proxy contract: {"Yes" if response.is_proxy else "No"}
+            Can mint: {"Yes" if response.is_mintable else "No"}
+            Can take back ownership: {"Yes" if response.can_take_back_ownership else "No"}
+            Owner can change balance: {"Yes" if response.owner_change_balance else "No"}
+            Is hidden owner: {"Yes" if response.hidden_owner else "No"}
+            Can self-destruct: {"Yes" if response.selfdestruct else "No"}
+            External contract call risk: {"Yes" if response.external_call else "No"}
+            Gas abuse: {"Yes" if response.gas_abuse else "No"}
+
             Trading related:
             Buy tax rate: {response.buy_tax}
             Sell tax rate: {response.sell_tax}
-            Is honeypot: {'Yes' if response.is_honeypot else 'No'}
-            Is transfer pausable: {'Yes' if response.transfer_pausable else 'No'}
-            Cannot sell all: {'Yes' if response.cannot_sell_all else 'No'}
-            Cannot buy: {'Yes' if response.cannot_buy else 'No'}
-            Trading cooldown: {'Yes' if response.trading_cooldown else 'No'}
-            
+            Is honeypot: {"Yes" if response.is_honeypot else "No"}
+            Is transfer pausable: {"Yes" if response.transfer_pausable else "No"}
+            Cannot sell all: {"Yes" if response.cannot_sell_all else "No"}
+            Cannot buy: {"Yes" if response.cannot_buy else "No"}
+            Trading cooldown: {"Yes" if response.trading_cooldown else "No"}
+
             Limit mechanism:
-            Is anti-whale: {'Yes' if response.is_anti_whale else 'No'}
-            Is modifiable: {'Yes' if response.anti_whale_modifiable else 'No'}
-            Is modifiable: {'Yes' if response.slippage_modifiable else 'No'}
-            Is blacklisted: {'Yes' if response.is_blacklisted else 'No'}
-            Is whitelisted: {'Yes' if response.is_whitelisted else 'No'}
-            Can target address change: {'Yes' if response.personal_slippage_modifiable else 'No'}
-            
+            Is anti-whale: {"Yes" if response.is_anti_whale else "No"}
+            Is modifiable: {"Yes" if response.anti_whale_modifiable else "No"}
+            Is modifiable: {"Yes" if response.slippage_modifiable else "No"}
+            Is blacklisted: {"Yes" if response.is_blacklisted else "No"}
+            Is whitelisted: {"Yes" if response.is_whitelisted else "No"}
+            Can target address change: {"Yes" if response.personal_slippage_modifiable else "No"}
+
             Reply to user with the analysis result
             """
             logger.info(content)

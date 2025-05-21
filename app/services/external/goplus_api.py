@@ -1,9 +1,11 @@
-import httpx
 import logging
-from app.utils.custom_exceptions import ServerException
-from app.schemas.token import RiskOptions, SOLRiskOptions
+
+import httpx
+
 from app.config import get_config
-from app.utils.cache import get_cached_data, cache_data
+from app.schemas.token import RiskOptions, SOLRiskOptions
+from app.utils.cache import cache_data, get_cached_data
+from app.utils.custom_exceptions import ServerException
 from app.utils.retry import retry_async
 
 APIS = {
@@ -27,7 +29,9 @@ async def _request_goplus_api(url: str):
         logger.debug(f"Using cached data: {cache_key}")
         return cached_data
 
-    timeout = httpx.Timeout(30.0, connect=10.0)  # Total timeout 30 seconds, connect timeout 10 seconds
+    timeout = httpx.Timeout(
+        30.0, connect=10.0
+    )  # Total timeout 30 seconds, connect timeout 10 seconds
     async with httpx.AsyncClient(timeout=timeout) as client:
         client.headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -52,12 +56,15 @@ async def _request_goplus_api(url: str):
 # Build URL
 # ========================================================================
 
+
 async def api_check_token_safety(chain_id: str, ca: str):
     """
     Check token safety
     """
     config = get_config()["external_apis"]["goplus"]
-    url = f"{config['base_url']}{APIS['token_safety']}/{chain_id}?contract_addresses={ca}"
+    url = (
+        f"{config['base_url']}{APIS['token_safety']}/{chain_id}?contract_addresses={ca}"
+    )
     logger.debug(f"Checking token safety: {url}")
     return await _request_goplus_api(url)
 
@@ -83,6 +90,7 @@ async def api_check_sui_token_safety(ca: str):
 # ========================================================================
 # Parse Token Check API return value to object
 # ========================================================================
+
 
 def parse_goplus_data(ca_data: dict) -> RiskOptions:
     """
@@ -157,6 +165,7 @@ def parse_goplus_data(ca_data: dict) -> RiskOptions:
 # Parse SOL Token Check API return value to object
 # ========================================================================
 
+
 def parse_solana_token_data(ca_data: dict) -> SOLRiskOptions:
     """
     Parse Solana token safety data to SOLRiskOptions object
@@ -172,7 +181,9 @@ def parse_solana_token_data(ca_data: dict) -> SOLRiskOptions:
     if ca_data.get("transfer_fee") and isinstance(ca_data.get("transfer_fee"), dict):
         transfer_fee = float(ca_data.get("transfer_fee", {}).get("fee_rate", 0))
 
-    transfer_fee_upgradable = ca_data.get("transfer_fee_upgradable", {}).get("status") == "1"
+    transfer_fee_upgradable = (
+        ca_data.get("transfer_fee_upgradable", {}).get("status") == "1"
+    )
     transfer_hook = len(ca_data.get("transfer_hook", [])) > 0
     default_account_state = ca_data.get("default_account_state", "")
 
@@ -219,7 +230,10 @@ def parse_solana_token_data(ca_data: dict) -> SOLRiskOptions:
 # Process Token Risk Data
 # ========================================================================
 
-async def process_token_risk(chain_id: str, contract_address: str) -> RiskOptions | None:
+
+async def process_token_risk(
+    chain_id: str, contract_address: str
+) -> RiskOptions | None:
     """
     Process token risk check data and return structured risk info
 
@@ -241,7 +255,9 @@ async def process_token_risk(chain_id: str, contract_address: str) -> RiskOption
 
         ca_data = token_data.get(contract_address.lower())
         if not ca_data:
-            logger.warning(f"Contract data not found in GoPlus API response: {contract_address}")
+            logger.warning(
+                f"Contract data not found in GoPlus API response: {contract_address}"
+            )
             return None
 
         risk_options = parse_goplus_data(ca_data)
@@ -268,12 +284,16 @@ async def process_solana_token_risk(contract_address: str) -> SOLRiskOptions | N
 
         # Ensure response is a dict and contains the contract address
         if not token_data or not isinstance(token_data, dict):
-            logger.warning(f"GoPlus API did not return valid Solana token data: {contract_address}")
+            logger.warning(
+                f"GoPlus API did not return valid Solana token data: {contract_address}"
+            )
             return None
 
         ca_data = token_data.get(contract_address)
         if not ca_data:
-            logger.warning(f"Contract data not found in GoPlus Solana data: {contract_address}")
+            logger.warning(
+                f"Contract data not found in GoPlus Solana data: {contract_address}"
+            )
             return None
 
         risk_options = parse_solana_token_data(ca_data)
@@ -301,12 +321,16 @@ async def process_sui_token_risk(contract_address: str):
         # Custom parsing logic can be added here for Sui's return format
         # Currently using generic parsing
         if not token_data or not isinstance(token_data, dict):
-            logger.warning(f"GoPlus API did not return valid Sui token data: {contract_address}")
+            logger.warning(
+                f"GoPlus API did not return valid Sui token data: {contract_address}"
+            )
             return None
 
         ca_data = token_data.get(contract_address)
         if not ca_data:
-            logger.warning(f"Contract data not found in GoPlus Sui data: {contract_address}")
+            logger.warning(
+                f"Contract data not found in GoPlus Sui data: {contract_address}"
+            )
             return None
 
         # TODO: Implement Sui-specific risk parsing function, currently returning raw data

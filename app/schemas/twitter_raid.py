@@ -1,5 +1,7 @@
 from typing import Optional
+
 from pydantic import BaseModel, Field
+
 from app.schemas.base import ApiBase
 
 
@@ -7,6 +9,7 @@ class TwitterRaidRequest(BaseModel):
     """
     Twitter raid request
     """
+
     token_name: str = Field(..., description="Token name")
     token_symbol: str = Field(..., description="Token symbol")
     token_ca: str = Field(..., description="Token contract address")
@@ -15,10 +18,12 @@ class TwitterRaidRequest(BaseModel):
 
     chain: Optional[str] = Field(None, description="Chain to raid on")
 
+
 class Tweet(BaseModel):
     """
     Tweet data model
     """
+
     url: str = Field(..., description="Tweet URL")
     text: str = Field(..., description="Tweet content")
     retweetCount: int = Field(0, description="Retweet count")
@@ -26,7 +31,9 @@ class Tweet(BaseModel):
     likeCount: int = Field(0, description="Like count")
     quoteCount: int = Field(0, description="Quote count")
     viewCount: int = Field(0, description="View count")
-    createdAt: str = Field(..., description="Creation time, e.g. 'Tue Dec 10 07:00:30 +0000 2024'")
+    createdAt: str = Field(
+        ..., description="Creation time, e.g. 'Tue Dec 10 07:00:30 +0000 2024'"
+    )
     bookmarkCount: int = Field(0, description="Bookmark count")
     isReply: bool = Field(False, description="Is reply")
     # id: str = Field(..., description="Tweet ID")
@@ -56,13 +63,15 @@ Engagement metrics:
 - Views: {self.viewCount}
 - Bookmarks: {self.bookmarkCount}
 Posted at: {self.createdAt}
-Type: {'Reply to someone' if self.isReply else 'Original tweet'}
+Type: {"Reply to someone" if self.isReply else "Original tweet"}
         """
+
 
 class TwitterRaidData(BaseModel):
     """
     Twitter raid data
     """
+
     title: str = Field(..., description="Title of the target")
     twitter_url: str = Field(..., description="Target's Twitter URL")
     name: str = Field(..., description="Target's name")
@@ -71,8 +80,10 @@ class TwitterRaidData(BaseModel):
     tweet_url: str = Field(..., description="Raid tweet URL")
     raid_content: str = Field(..., description="Raid content")
 
+
 class TwitterRaidResponse(ApiBase[TwitterRaidData]):
     """
     Twitter raid response
     """
+
     pass

@@ -1,9 +1,10 @@
 import json
-
-from app.dependencies import get_redis
 import logging
 
+from app.dependencies import get_redis
+
 logger = logging.getLogger(__name__)
+
 
 async def get_cached_data(key: str):
     """
@@ -23,9 +24,5 @@ async def cache_data(key: str, data: dict, expire_seconds: int = 360000):
     Cache data
     """
     async with get_redis() as redis_client:
-        await redis_client.set(
-            key,
-            json.dumps(data),
-            ex=expire_seconds
-        )
+        await redis_client.set(key, json.dumps(data), ex=expire_seconds)
         logger.debug(f"Data cached: {key}, expire in {expire_seconds} seconds")

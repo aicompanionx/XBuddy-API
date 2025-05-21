@@ -32,7 +32,7 @@ SDK_SUPPORTED_CHAINS = {
     "abstract": "2741",
     "hashkey chain": "177",
     "sonic": "146",
-    "story": "1514"
+    "story": "1514",
 }
 
 # API supported blockchain mapping table
@@ -74,12 +74,16 @@ API_SUPPORTED_CHAINS = {
     "merlin": "4200",
     "manta pacific": "169",
     "blast": "81457",
-    
     "okc": "66",
     "ethw": "10001",
 }
 
-SUPPORTED_CHAINS = {*SDK_SUPPORTED_CHAINS.keys(), *API_SUPPORTED_CHAINS.keys(), "solana", "sui"}
+SUPPORTED_CHAINS = {
+    *SDK_SUPPORTED_CHAINS.keys(),
+    *API_SUPPORTED_CHAINS.keys(),
+    "solana",
+    "sui",
+}
 
 # Blockchain name standardization mapping table
 CHAIN_NAME_MAPPING: Dict[str, str] = {
@@ -87,114 +91,75 @@ CHAIN_NAME_MAPPING: Dict[str, str] = {
     "eth": "ethereum",
     "ether": "ethereum",
     "ethereum": "ethereum",
-    
     "bsc": "bsc",
     "bnb": "bsc",
     "binance": "bsc",
     "binance smart chain": "bsc",
-    
     "arb": "arbitrum",
     "arbitrum": "arbitrum",
     "arbitrum one": "arbitrum",
-    
     "matic": "polygon",
     "polygon": "polygon",
-    
     "op": "optimism",
     "optimism": "optimism",
-    
     "avax": "avalanche",
     "avalanche": "avalanche",
-    
     "ftm": "fantom",
     "fantom": "fantom",
-    
     "sol": "solana",
     "solana": "solana",
-    
     "sui": "sui",
-    
     # Other blockchain
     "zksync": "zksync era",
     "zksync era": "zksync era",
     "era": "zksync era",
-    
     "linea": "linea mainnet",
     "linea mainnet": "linea mainnet",
-    
     "base": "base",
-    
     "scroll": "scroll",
-    
     "cronos": "cronos",
     "cro": "cronos",
-    
     "okc": "okc",
     "okx": "okc",
-    
     "heco": "heco",
     "huobi": "heco",
-    
     "gnosis": "gnosis",
     "xdai": "gnosis",
-    
     "ethw": "ethw",
-    
     "tron": "tron",
     "trx": "tron",
-    
     "kcc": "kcc",
-    
     "fon": "fon",
-    
     "mantle": "mantle",
-    
     "opbnb": "opbnb",
-    
     "zkfair": "zkfair",
-    
     "blast": "blast",
-    
     "manta": "manta pacific",
     "manta pacific": "manta pacific",
-    
     "bera": "berachain",
     "berachain": "berachain",
-    
     "abstract": "abstract",
-    
     "hashkey": "hashkey",
     "hashkey chain": "hashkey chain",
-    
     "sonic": "sonic",
-    
     "story": "story",
-    
     "soneium": "soneium",
-    
     "monad": "monad",
-    
     "world": "world chain",
     "world chain": "world chain",
-    
     "morph": "morph",
-    
     "gravity": "gravity",
-    
     "zircuit": "zircuit",
-    
     "xlayer": "x layer mainnet",
     "x layer": "x layer mainnet",
     "x layer mainnet": "x layer mainnet",
-    
     "zklink": "zklink nova",
     "zklink nova": "zklink nova",
-    
     "bitlayer": "bitlayer mainnet",
     "bitlayer mainnet": "bitlayer mainnet",
-    
-    "merlin": "merlin"
+    "merlin": "merlin",
 }
+
 
 def normalize_chain_name(chain_name: str) -> Optional[str]:
     """
@@ -202,21 +167,21 @@ def normalize_chain_name(chain_name: str) -> Optional[str]:
     """
     if not chain_name:
         return None
-    
+
     # Convert to lowercase and remove leading and trailing spaces
     normalized = chain_name.lower().strip()
-    
+
     # Directly look up the mapping table
     if normalized in CHAIN_NAME_MAPPING:
         return CHAIN_NAME_MAPPING[normalized]
-    
+
     # Check if it is already a standard name
     if normalized in SUPPORTED_CHAINS:
         return normalized
-    
+
     # Try partial matching
     for standard_name in SUPPORTED_CHAINS:
         if normalized in standard_name or standard_name in normalized:
             return standard_name
-    
-    return chain_name   
+
+    return chain_name

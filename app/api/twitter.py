@@ -1,21 +1,21 @@
 from fastapi import APIRouter
-from app.services.twitter import get_rename_data_twitter
-from app.utils.custom_exceptions import BadRequestException, ServerException
+
 from app.schemas.twitter import (
+    RenameHistoryRequest,
     # TwitterStatisticRequest,
     # TwitterStatisticResponse,
-
     RenameHistoryResponse,
-    RenameHistoryRequest,
-    
     TwitterUserInfoRequest,
-    TwitterUserInfoResponse
+    TwitterUserInfoResponse,
 )
 from app.services.external.getmoni_api import get_user_info
+from app.services.twitter import get_rename_data_twitter
+from app.utils.custom_exceptions import BadRequestException, ServerException
 from app.utils.logger import get_logger
 
 router = APIRouter(prefix="/twitter", tags=["Twitter Service"])
 logger = get_logger(__name__)
+
 
 # ========================================================================
 # User Information
@@ -59,7 +59,9 @@ async def api_twitter_rename_history(req: RenameHistoryRequest):
         # Check if the URL is a valid Twitter URL
         url_str = req.url.lower()
         if not ("twitter.com" in url_str or "x.com" in url_str):
-            raise BadRequestException("Invalid Twitter URL, must be twitter.com or x.com")
+            raise BadRequestException(
+                "Invalid Twitter URL, must be twitter.com or x.com"
+            )
 
         logger.debug(f"Requesting rename history: {req.url}")
         result = await get_rename_data_twitter(req.url)

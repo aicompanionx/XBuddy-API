@@ -1,9 +1,10 @@
 import logging
+
 import httpx
 
 from app.config import get_config
-from app.utils.cache import get_cached_data, cache_data
 from app.schemas.token import TokenInfo, TokenPairsData
+from app.utils.cache import cache_data, get_cached_data
 from app.utils.custom_exceptions import ServerException
 from app.utils.retry import retry_async
 
@@ -21,10 +22,12 @@ async def _request_dex_api(url: str):
     if cached_data:
         logger.debug(f"Using cached data: {cache_key}")
         return cached_data
-        
+
     config = get_config()["external_apis"]["dex"]
     base_url = config["base_url"]
-    timeout = httpx.Timeout(30.0, connect=10.0)  # Total timeout 30 seconds, connect timeout 10 seconds
+    timeout = httpx.Timeout(
+        30.0, connect=10.0
+    )  # Total timeout 30 seconds, connect timeout 10 seconds
     async with httpx.AsyncClient(timeout=timeout) as client:
         client.headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -37,14 +40,14 @@ async def _request_dex_api(url: str):
         response.raise_for_status()
 
         data = response.json()
-        
+
         # Cache the result
         await cache_data(cache_key, data)
-        
+
         return data
 
 
-async def get_pairs_base(chain: str,  pair_address: str) -> TokenPairsData:
+async def get_pairs_base(chain: str, pair_address: str) -> TokenPairsData:
     """
     Get token information by pair address
     """
@@ -54,7 +57,9 @@ async def get_pairs_base(chain: str,  pair_address: str) -> TokenPairsData:
     pair_datas = response["pairs"]
 
     if pair_datas is None:
-        raise ServerException("Failed to get pool related information, please check if it is a pair address")
+        raise ServerException(
+            "Failed to get pool related information, please check if it is a pair address"
+        )
 
     pair_data = pair_datas[0]
 
@@ -63,17 +68,20 @@ async def get_pairs_base(chain: str,  pair_address: str) -> TokenPairsData:
         ca=pair_data["baseToken"]["address"],
         name=pair_data["baseToken"]["name"],
         symbol=pair_data["baseToken"]["symbol"],
-        twitter=next((social["url"] for social in pair_data["info"]["socials"] 
-                    if social["type"] == "twitter"), ""),
+        twitter=next(
+            (
+                social["url"]
+                for social in pair_data["info"]["socials"]
+                if social["type"] == "twitter"
+            ),
+            "",
+        ),
         imageUrl=pair_data["info"]["imageUrl"],
         marketCap=pair_data["marketCap"],
-        priceUsd=float(pair_data["priceUsd"])
+        priceUsd=float(pair_data["priceUsd"]),
     )
-    
+
     # Build TokenPairsData object
-    result = TokenPairsData(
-        pa=pair_data["pairAddress"],
-        token=token_info
-    )
-    
+    result = TokenPairsData(pa=pair_data["pairAddress"], token=token_info)
+
     return result
