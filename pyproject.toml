@@ -1,0 +1,43 @@
+[tool.ruff]
+# Enable Pyflakes, Pycodestyle, and isort rules by default.
+# E501: line too long (handled by black)
+# E741: ambiguous variable name (can be noisy)
+# I001: isort known_third_party
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501", "E741"]
+# Allow unused variables in `__init__.py` files
+# They are often imported for re-export.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+# Use black for formatting.
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# Exclude common directories from formatting/linting by default
+# You can add more specific exclusions if needed
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]

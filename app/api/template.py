@@ -1,8 +1,9 @@
 import logging
+
 from fastapi import APIRouter
 
+from app.schemas.template import Data, Request, Response
 from app.utils.custom_exceptions import ServerException
-from app.schemas.template import Data,Request,Response
 
 router = APIRouter(prefix="/Route", tags=["Route Introduction Group"])
 logger = logging.getLogger(__name__)

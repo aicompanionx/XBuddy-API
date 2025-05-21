@@ -5,8 +5,9 @@ import httpx
 
 from app.config import get_config
 from app.schemas.twitter_raid import Tweet
-from app.utils.cache import get_cached_data, cache_data
+from app.utils.cache import cache_data, get_cached_data
 from app.utils.retry import retry_async
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,16 +22,18 @@ async def _request_twitter_api(url: str):
     if cached_data:
         logger.debug(f"Using cached data: {cache_key}")
         return cached_data
-    
+
     config = get_config()["external_apis"]["twitterapi"]
     key = config["key"]
     base_url = config["base_url"]
-    timeout = httpx.Timeout(30.0, connect=10.0)  # Total timeout 30 seconds, connect timeout 10 seconds
-    
+    timeout = httpx.Timeout(
+        30.0, connect=10.0
+    )  # Total timeout 30 seconds, connect timeout 10 seconds
+
     async with httpx.AsyncClient(timeout=timeout) as client:
         client.headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "x-api-key": key
+            "x-api-key": key,
         }
 
         full_url = base_url + url
@@ -40,18 +43,19 @@ async def _request_twitter_api(url: str):
         response.raise_for_status()
 
         data = response.json()["data"]
-        
+
         # Cache the result
         await cache_data(cache_key, data)
-        
+
         return data
+
 
 async def get_screen_name(username: str) -> tuple[str, str]:
     """
     Get the display name and ID of a user by their username
     """
     response = await _request_twitter_api(f"/twitter/user/info?userName={username}")
-    
+
     return response["name"], response["id"]
 
 
@@ -88,36 +92,40 @@ async def get_screen_name(username: str) -> tuple[str, str]:
 #
 #     return twitter_data
 
+
 async def get_tweets(username: str) -> list[Tweet]:
     """
     Get a user's random tweets
     """
     try:
-        response = await _request_twitter_api(f"/twitter/user/last_tweets?userName={username}")
-        
+        response = await _request_twitter_api(
+            f"/twitter/user/last_tweets?userName={username}"
+        )
+
         pin_tweet = response.get("pin_tweet", None)
         tweets = response.get("tweets", [])
-        
+
         all_tweets = []
-        
+
         # Add the pinned tweet (if it exists)
         if pin_tweet:
             all_tweets.append(pin_tweet)
-        
+
         # Add the ordinary tweets
         if tweets:
             all_tweets.extend(tweets)
-            
+
         if not all_tweets:
             logger.warning(f"User {username} has no tweets")
             return []
-        
+
         tweets_obj = [convert_tweet_dict_to_model(i) for i in all_tweets]
         return tweets_obj
-        
+
     except Exception as e:
         logger.error(f"Failed to get user {username}'s random tweets: {str(e)}")
         return []
+
 
 def get_random_tweet(tweets: list[Tweet]) -> Tweet:
     """
@@ -125,7 +133,7 @@ def get_random_tweet(tweets: list[Tweet]) -> Tweet:
     """
     if not tweets:
         logger.warning("No tweets available")
-    
+
     return random.choice(tweets)
 
 
@@ -166,7 +174,7 @@ def get_non_reply_tweets(tweets: list[Tweet]):
     if not tweets:
         logger.warning("No tweets available")
         return []
-    
+
     return [tweet for tweet in tweets if not tweet.isReply]
 
 
@@ -177,5 +185,5 @@ def get_most_liked_tweets(tweets: list[Tweet]):
     if not tweets:
         logger.warning("No tweets available")
         return None
-    
+
     return sorted(tweets, key=lambda x: x.likeCount, reverse=True)

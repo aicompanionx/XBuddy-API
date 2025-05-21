@@ -14,8 +14,9 @@ messages = {
     "unknow": {
         "zh": "主人，没有查到相关信息",
         "en": "Master, no relevant information found",
-    }
+    },
 }
+
 
 def get_message(key: str, lang: str = "zh") -> str:
     return messages.get(key, {}).get(lang, "")

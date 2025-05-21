@@ -1,10 +1,13 @@
+import json
+
+from goplus.phishing_site import PushingSite
+
 from app.dependencies import get_redis
 from app.schemas.phishing import PhishingData
+from app.utils.custom_exceptions import BadRequestException, ServerException
 from app.utils.localization import get_message
 from app.utils.url_kit import truncate_url_path
-from app.utils.custom_exceptions import BadRequestException, ServerException
-from goplus.phishing_site import PushingSite
-import json
+
 
 async def check_phishing(url: str, lang: str = "zh") -> PhishingData:
     """
@@ -27,14 +30,12 @@ async def check_phishing(url: str, lang: str = "zh") -> PhishingData:
         return PhishingData(
             url=url,
             isPhishing=cache_data.get("isPhishing"),
-            message=cache_data.get("message")
+            message=cache_data.get("message"),
         )
 
     # If the cache does not exist, call the API
     try:
-        data = PushingSite(access_token=None).pushing_site_security(
-            url=url
-        )
+        data = PushingSite(access_token=None).pushing_site_security(url=url)
     except Exception as e:
         raise ServerException(f"Failed to call phishing detection API: {str(e)}")
 
@@ -50,7 +51,9 @@ async def check_phishing(url: str, lang: str = "zh") -> PhishingData:
         result = PhishingData(
             url=url,
             isPhishing=False if data.result.phishing_site == 0 else True,
-            message=get_message("safe", lang) if data.result.phishing_site == 0 else get_message("danger", lang)
+            message=get_message("safe", lang)
+            if data.result.phishing_site == 0
+            else get_message("danger", lang),
         )
 
     # Store the result in the cache
@@ -58,7 +61,7 @@ async def check_phishing(url: str, lang: str = "zh") -> PhishingData:
         await redis_client.set(
             f"check_phishing:{url}",
             json.dumps({"isPhishing": result.isPhishing, "message": result.message}),
-            ex=36000  # Cache for 10 hours
+            ex=36000,  # Cache for 10 hours
         )
 
     return result

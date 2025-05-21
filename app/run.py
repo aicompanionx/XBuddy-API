@@ -1,8 +1,8 @@
 import uvicorn
+from dotenv import load_dotenv
 
 # Load logger module
-from app.utils.logger import setup_logger, get_logger
-from dotenv import load_dotenv
+from app.utils.logger import get_logger, setup_logger
 
 # Load environment variables
 load_dotenv()
@@ -10,6 +10,7 @@ load_dotenv()
 # Set up logger
 setup_logger()
 logger = get_logger(__name__)
+
 
 def run_server():
     """
@@ -31,6 +32,7 @@ def run_server():
         logger.error(f"Failed to start server: {e}", exc_info=True)
     finally:
         logger.info("Server has been closed")
+
 
 if __name__ == "__main__":
     run_server()

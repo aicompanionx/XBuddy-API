@@ -2,36 +2,36 @@ import logging
 
 from fastapi import APIRouter
 
-from app.services.external.coingecko_api import get_token_desc
-from app.utils.custom_exceptions import BadRequestException, ExternalApiException
-
 from app.schemas.token import (
+    CAFromTwitterRequest,
+    CAFromTwitterResponse,
     CheckSOLTokenRequest,
     CheckSOLTokenResponse,
     CheckTokenRequest,
     CheckTokenResponse,
-
-    CAFromTwitterRequest,
-    CAFromTwitterResponse,
+    TokenChainData,
     TokenChainRequest,
     TokenChainResponse,
     TokenDetailRequest,
     TokenDetailResponse,
-
-    TwitterFromCARequest,
+    TokenPairsRequest,
+    TokenPairsResponse,
     TwitterFromCAData,
-    TwitterFromCAResponse, TokenPairsResponse, TokenPairsRequest, TokenChainData
+    TwitterFromCARequest,
+    TwitterFromCAResponse,
+)
+from app.services.external.coingecko_api import get_token_desc
+from app.services.external.dex_sreener_api import get_pairs_base
+from app.services.token import (
+    check_sol_token_safety as check_sol_token_safety_service,
 )
 from app.services.token import (
     check_token_safety_api,
-    check_sol_token_safety,
     get_ca_from_twitter,
     get_twitter_from_ca,
-    identify_token_chain
+    identify_token_chain,
 )
-from app.services.external.dex_sreener_api import (
-    get_pairs_base
-)
+from app.utils.custom_exceptions import BadRequestException, ExternalApiException
 
 router = APIRouter(prefix="/token", tags=["Token Service"])
 
@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
     "/check",
     response_model=CheckTokenResponse,
     summary="Check token safety",
-    description="Check token safety by providing the chain name and contract address"
+    description="Check token safety by providing the chain name and contract address",
 )
 async def check_token_safety(req: CheckTokenRequest):
     """
@@ -62,13 +62,13 @@ async def check_token_safety(req: CheckTokenRequest):
     "/check-sol",
     response_model=CheckSOLTokenResponse,
     summary="Check SOL token safety",
-    description="Check SOL token safety by providing the contract address"
+    description="Check SOL token safety by providing the contract address",
 )
 async def check_sol_token_safety(req: CheckSOLTokenRequest):
     """
     Check SOL token safety
     """
-    result = await check_sol_token_safety(req.ca)
+    result = await check_sol_token_safety_service(req.ca)
     return CheckSOLTokenResponse(data=result)
 
 
@@ -79,7 +79,7 @@ async def check_sol_token_safety(req: CheckSOLTokenRequest):
     "/ca-by-twitter",
     response_model=CAFromTwitterResponse,
     summary="Get CA from Twitter username",
-    description="Get CA from Twitter username"
+    description="Get CA from Twitter username",
 )
 async def get_ca_by_twitter(req: CAFromTwitterRequest):
     """
@@ -97,7 +97,7 @@ async def get_ca_by_twitter(req: CAFromTwitterRequest):
     "/twitter-by-ca",
     response_model=TwitterFromCAResponse,
     summary="Get Twitter username from CA",
-    description="Get Twitter username from CA"
+    description="Get Twitter username from CA",
 )
 async def get_twitter_by_ca(req: TwitterFromCARequest):
     """
@@ -107,6 +107,7 @@ async def get_twitter_by_ca(req: TwitterFromCARequest):
 
     return TwitterFromCAResponse(data=twitter_data)
 
+
 # ========================================================================
 # Get token info from pool
 # ========================================================================
@@ -114,7 +115,7 @@ async def get_twitter_by_ca(req: TwitterFromCARequest):
     "/token-by-pool",
     response_model=TokenPairsResponse,
     summary="Get token info from pool address",
-    description="Get token info from pool address"
+    description="Get token info from pool address",
 )
 async def get_token_by_pool(req: TokenPairsRequest):
     """
@@ -123,6 +124,7 @@ async def get_token_by_pool(req: TokenPairsRequest):
     token_data = await get_pairs_base(req.chain, req.pa)
     return TokenPairsResponse(data=token_data)
 
+
 # ========================================================================
 # Get token detail from CA
 # ========================================================================
@@ -130,7 +132,7 @@ async def get_token_by_pool(req: TokenPairsRequest):
     "/token-detail-by-ca",
     response_model=TokenDetailResponse,
     summary="Get token detail from CA",
-    description="Get token detail from CA"
+    description="Get token detail from CA",
 )
 async def get_token_detail_by_ca(req: TokenDetailRequest):
     """
@@ -143,6 +145,7 @@ async def get_token_detail_by_ca(req: TokenDetailRequest):
         logger.error(f"Get token detail failed: {str(e)}")
         raise BadRequestException(f"Get token detail failed: {str(e)}")
 
+
 # ========================================================================
 # Get token chain from CA
 # ========================================================================
@@ -150,7 +153,7 @@ async def get_token_detail_by_ca(req: TokenDetailRequest):
     "/chain-by-ca",
     response_model=TokenChainResponse,
     summary="Get token chain from CA",
-    description="Get token chain from CA"
+    description="Get token chain from CA",
 )
 async def get_token_chain_by_ca(req: TokenChainRequest):
     """

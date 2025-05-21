@@ -12,30 +12,49 @@ push_objects = {
         # {"name": "Binance CEO: He Yi", "url": "https://twitter.com/heyibinance"},
         {"name": "BNB Chain", "url": "https://twitter.com/BNBCHAIN"},
         {"name": "Binance Wallet", "url": "https://twitter.com/BinanceWallet"},
-        {"name": "Binance", "url": "https://twitter.com/binance"}
+        {"name": "Binance", "url": "https://twitter.com/binance"},
     ],
     "solana": [
-        {"name": "Solana CEO: Anatoly Yakovenko", "url": "https://twitter.com/aeyakovenko"},
+        {
+            "name": "Solana CEO: Anatoly Yakovenko",
+            "url": "https://twitter.com/aeyakovenko",
+        },
         {"name": "Solana Official", "url": "https://twitter.com/solana"},
         {"name": "a16z Founder: Marc Andreessen", "url": "https://twitter.com/pmdf"},
-        {"name": "pump.fun", "url": "https://twitter.com/pumpdotfun"}
+        {"name": "pump.fun", "url": "https://twitter.com/pumpdotfun"},
     ],
     "base": [
-        {"name": "Coinbase CEO: Brian Armstrong", "url": "https://twitter.com/brian_armstrong"},
-        {"name": "BASE Chain Founder: Jesse Pollak", "url": "https://twitter.com/jessepollak"},
-        {"name": "BASE Ecosystem Lead: David Tso", "url": "https://twitter.com/davidtsocy"},
-        {"name": "BASE Developer Lead: Xen BH", "url": "https://twitter.com/XenBH"}
+        {
+            "name": "Coinbase CEO: Brian Armstrong",
+            "url": "https://twitter.com/brian_armstrong",
+        },
+        {
+            "name": "BASE Chain Founder: Jesse Pollak",
+            "url": "https://twitter.com/jessepollak",
+        },
+        {
+            "name": "BASE Ecosystem Lead: David Tso",
+            "url": "https://twitter.com/davidtsocy",
+        },
+        {"name": "BASE Developer Lead: Xen BH", "url": "https://twitter.com/XenBH"},
     ],
     "ethereum": [
-        {"name": "ETH Founder: Vitalik Buterin", "url": "https://twitter.com/VitalikButerin"},
-        {"name": "ETH Co-Founder: Joseph Lubin", "url": "https://twitter.com/ethereumJoseph"}
+        {
+            "name": "ETH Founder: Vitalik Buterin",
+            "url": "https://twitter.com/VitalikButerin",
+        },
+        {
+            "name": "ETH Co-Founder: Joseph Lubin",
+            "url": "https://twitter.com/ethereumJoseph",
+        },
     ],
-    "trx": [
-        {"name": "Justin Sun", "url": "https://twitter.com/justinsuntron"}
-    ],
+    "trx": [{"name": "Justin Sun", "url": "https://twitter.com/justinsuntron"}],
     "ripple": [
-        {"name": "Ripple CEO: Brad Garlinghouse", "url": "https://twitter.com/bgarlinghouse"}
-    ]
+        {
+            "name": "Ripple CEO: Brad Garlinghouse",
+            "url": "https://twitter.com/bgarlinghouse",
+        }
+    ],
 }
 
 # Define a list of generic push objects
