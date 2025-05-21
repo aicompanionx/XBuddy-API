@@ -7,7 +7,6 @@ from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.ai import router as ai_router
-from app.api.logs import router as logs_router
 from app.api.phishing import router as phishing_router
 from app.api.stream.chat import router as chat_router
 from app.api.stream.news import router as news_router
@@ -85,7 +84,6 @@ app.include_router(phishing_router, prefix=api_prefix)
 app.include_router(twitter_analysis_router, prefix=api_prefix)
 app.include_router(token_router, prefix=api_prefix)
 app.include_router(tts_router, prefix=api_prefix)
-app.include_router(logs_router, prefix=api_prefix)
 app.include_router(ai_router, prefix=api_prefix)
 app.include_router(token_analysis_router, prefix=api_prefix)
 app.include_router(twitter_raid_router, prefix=api_prefix)

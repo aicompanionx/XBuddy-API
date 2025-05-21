@@ -183,6 +183,7 @@ run_dev.bat   # Windows
 | Variable Name | Description | Default |
 |---------------|-------------|----------|
 | `CONFIG_FILE` | YAML configuration file path | `./config.yaml` |
+| `LOG_LEVEL`   | Controls the application's log output level. Valid values are `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. | `INFO` |
 
 ## 💡 Design Highlights
 - **FastAPI** + **Uvicorn**: Asynchronous high performance.

@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 import time
 from logging.handlers import RotatingFileHandler
@@ -24,9 +25,6 @@ COLORS = {
 
 # Mapping of log levels to emojis
 EMOJIS = {"DEBUG": "🔍", "INFO": "✅", "WARNING": "⚠️", "ERROR": "❌", "CRITICAL": "🔥"}
-
-# List of WebSocket connections
-web_sockets = []
 
 # List of module names to filter out
 FILTERED_MODULES = [
@@ -100,6 +98,17 @@ class FileFormatter(logging.Formatter):
 
 def setup_logger():
     """Configure the global logging system"""
+    # Get log level from environment variable
+    log_level_str = os.environ.get("LOG_LEVEL", "INFO").upper()
+    log_levels = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+    }
+    log_level = log_levels.get(log_level_str, logging.INFO)
+
     # Create a log filter
     log_filter = LogFilter()
 
@@ -107,7 +116,7 @@ def setup_logger():
     console_handler = logging.StreamHandler(stream=sys.stdout)
     console_formatter = ColoredFormatter()
     console_handler.setFormatter(console_formatter)
-    console_handler.setLevel(logging.DEBUG)
+    console_handler.setLevel(log_level)  # Use the determined log level
     console_handler.addFilter(log_filter)
 
     # Create a file handler
@@ -135,7 +144,7 @@ def setup_logger():
 
     # Configure the root logger
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG)
+    root_logger.setLevel(log_level)  # Use the determined log level
 
     # Clear existing handlers
     for handler in root_logger.handlers[:]:
@@ -167,15 +176,3 @@ def setup_logger():
 def get_logger(name):
     """Get a logger with the specified name"""
     return logging.getLogger(name)
-
-
-def register_websocket(websocket):
-    """Register a WebSocket connection to receive log messages"""
-    if websocket not in web_sockets:
-        web_sockets.append(websocket)
-
-
-def unregister_websocket(websocket):
-    """Unregister a WebSocket connection"""
-    if websocket in web_sockets:
-        web_sockets.remove(websocket)
