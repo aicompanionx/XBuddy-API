@@ -268,6 +268,13 @@ class TokenDetailRequest(BaseModel):
     chain: str = Field(..., description="Chain name")
     ca: str = Field(..., description="Contract address")
 
+class OKXTokenDetailRequest(BaseModel):
+    """
+    Get token details request
+    """
+
+    symbol: str = Field(..., description="Token symbol")
+
 
 class TokenDetailData(BaseModel):
     """

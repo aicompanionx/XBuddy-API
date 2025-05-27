@@ -1,9 +1,10 @@
-import socket
 import ipaddress
-from urllib.parse import urlparse
 import logging
+import socket
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
+
 
 def is_public_url(url: str) -> bool:
     """
@@ -22,7 +23,7 @@ def is_public_url(url: str) -> bool:
         if ip.is_private or ip.is_loopback or ip.is_reserved:
             logger.warning(f"URL {url} resolves to a non-public IP: {ip_addr}")
             return False
-        
+
         return True
     except socket.gaierror:
         logger.error(f"Could not resolve hostname: {hostname} for URL: {url}")
@@ -30,6 +31,7 @@ def is_public_url(url: str) -> bool:
     except Exception as e:
         logger.error(f"Error validating URL {url}: {str(e)}")
         return False
+
 
 # Example usage (optional, for testing the function directly)
 # if __name__ == '__main__':
