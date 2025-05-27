@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 import yaml
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 CONFIG_PATH = os.getenv(
     "CONFIG_FILE", str(Path(__file__).parent.parent / "config.yaml")

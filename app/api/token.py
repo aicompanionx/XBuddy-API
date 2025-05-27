@@ -19,8 +19,10 @@ from app.schemas.token import (
     TwitterFromCAData,
     TwitterFromCARequest,
     TwitterFromCAResponse,
+    OKXTokenDetailRequest
 )
 from app.services.external.coingecko_api import get_token_desc
+from app.services.external.okx_api import get_token_detail as okx_get_token_detail
 from app.services.external.dex_sreener_api import get_pairs_base
 from app.services.token import (
     check_sol_token_safety as check_sol_token_safety_service,
@@ -144,6 +146,29 @@ async def get_token_detail_by_ca(req: TokenDetailRequest):
     except ExternalApiException as e:
         logger.error(f"Get token detail failed: {str(e)}")
         raise BadRequestException(f"Get token detail failed: {str(e)}")
+
+
+# ========================================================================
+# Get token detail from OKX API
+# ========================================================================
+@router.post(
+    "/okx_api",
+    response_model=TokenDetailResponse,
+    summary="Get token detail from OKX API",
+    description="Get token detail from OKX API by symbol",
+)
+async def get_token_detail_from_okx(req: OKXTokenDetailRequest):
+    """
+    Get token detail from OKX API by symbol
+    """
+    try:
+        # 使用 symbol 作为参数调用 OKX API
+        symbol = req.symbol  # 在这个接口中，我们将 ca 参数用作 symbol
+        result = await okx_get_token_detail(symbol)
+        return TokenDetailResponse(data=result)
+    except Exception as e:
+        logger.error(f"Get token detail from OKX failed: {str(e)}")
+        raise BadRequestException(f"Get token detail from OKX failed: {str(e)}")
 
 
 # ========================================================================
