@@ -6,9 +6,9 @@ import urllib.parse
 import httpx
 from datetime import datetime, timezone
 
-API_KEY = "86722305-be09-426d-a918-d005e4cc8fd4"
-SECRET   = "B6D1AE39FD30DFF65ED2B712EE07A920"
-PASSPHRASE = "S4Qb*nx4B#3&Dc"
+API_KEY = "XXX"
+SECRET   = "XXX"
+PASSPHRASE = "XXX"
 BASE = "https://www.okx.com/api/v5"
 
 def sign(ts: str, method: str, path: str, body: str = "") -> str:
@@ -54,9 +54,7 @@ async def okx_private_get(path: str, params: dict | None = None):
                 raise RuntimeError(f'OKX err {data.get("code", "N/A")}: {data.get("msg", "No message")}')
             return data.get("data")
         except httpx.ConnectTimeout:
-            print(f"连接超时: {full_request_url}")
             if BASE == "https://www.okx.com/api/v5":
-                print("尝试使用备用API地址...")
                 alt_url = full_request_url.replace("https://www.okx.com/api/v5", "https://www.okx.me/api/v5")
                 r = await c.get(alt_url)
                 r.raise_for_status()
@@ -65,7 +63,7 @@ async def okx_private_get(path: str, params: dict | None = None):
                     raise RuntimeError(f'OKX err {data.get("code", "N/A")}: {data.get("msg", "No message")}')
                 return data.get("data")
             else:
-                raise  # 如果不是默认URL，则重新抛出异常
+                raise 
 
 async def get_token_detail(symbol: str = "BTC"):
     currencies, instruments = await asyncio.gather(
